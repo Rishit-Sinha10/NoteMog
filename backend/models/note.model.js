@@ -1,0 +1,41 @@
+import mongoose from "mongoose";
+const note =new mongoose.Schema({
+    userId:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"User"
+    },
+    subjectId:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"Subject"
+    },
+    title:{
+        required:true,
+        default:"",
+        type:String,
+        lowercase:true,
+        index:1
+    },
+    date:{
+        required:true,
+        default:0,
+        type:Integer,
+    },
+    durationmins:{
+        required:true,
+        default:0,
+        type:Integer,
+    },
+    status:{
+        required:true,
+        default:"",
+        type:String,
+        type:[inactive,active]
+    },
+    rawText:{
+        required:true,
+        default:"",
+        type:String,
+    }
+},{
+    timestamps:true
+});
