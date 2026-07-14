@@ -370,7 +370,7 @@ We welcome contributions from the community! Follow these steps to contribute:
    - Wait for review
 ---
 <div align="center">
-### Made with ❤️ by [Rishit Sinha]
-⭐ **Star this repo if you find it helpful!**
+Made with ❤️ by [Rishit Sinha]
+⭐ Star this repo if you find it helpful!
 </div>
 ---
