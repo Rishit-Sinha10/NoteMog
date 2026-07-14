@@ -1,7 +1,7 @@
-import React,{useEffect} from "react";
+import React, { useEffect } from "react";
 import { SignInButton } from "@clerk/react";
 import { useAuth } from "@clerk/react";
-import { Navigate,useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 export default function Hero() {
   const { isSignedIn, isLoaded } = useAuth();
   const navigate = useNavigate();
@@ -48,7 +48,7 @@ export default function Hero() {
         <div className="relative animate-up" data-observe="">
           <div className="bg-white/40 p-4 rounded-3xl border border-white/50 backdrop-blur-sm">
             <img
-              alt="Lumina Dashboard Illustration"
+              alt="NoteMog Dashboard Illustration"
               className="w-full h-auto rounded-2xl soft-shadow"
               src="https://lh3.googleusercontent.com/aida-public/AB6AXuDCU4A616lal4IVjV7wnt9j7N-6-vHwC8eVgCxh6HhvKAjL6eIb2i6oLBP2Vf6HnVvlBCRLjBQkARGIV4T3g2e_nKB4TIgAZ17QqkFX9KumLiXV8vbrOCTXGfimaMNWjSie9BzH9eSwpWSAnU8vucAK-HJ3tg1zBdUdM5S8Q1IfVqNF0RgjTdzZXW4m4Ko0VY6jPMgaat2IlpRpx0sJpkNuvhB5fPg0w57eoHwvPw19nQZN82rwZbpJBseCSq5bBpIZhJXX9ixOjaHD"
             />

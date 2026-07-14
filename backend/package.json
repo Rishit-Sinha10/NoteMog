@@ -5,11 +5,20 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev":"nodemon server.js",
-    "run":"server.js"
+    "dev": "nodemon server.js",
+    "run": "server.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "@clerk/express": "^2.1.21",
+    "bcrypt": "^6.0.0",
+    "dotenv": "^17.4.2",
+    "express-validator": "^7.3.2",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.6.2",
+    "winston": "^3.19.0"
+  }
 }

@@ -22,7 +22,7 @@ export default function Header() {
             lightbulb
           </span>
           <span className="font-bold text-xl text-primary dark:text-primary-fixed-dim">
-            Lumina
+            NoteMog
           </span>
         </div>
 

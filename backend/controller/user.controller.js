@@ -1,132 +1,209 @@
-// Backend/controllers/auth.controller.js
-import { User } from '../models/user.models.js';
-import { AppError } from "../middleware/errorhandler.js";
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
-import { config } from '../config/config.js';
-import logger from '../utils/logger.js';
-
-export async function register(req, res, next) {
+import { User } from "../models/user.models.js";
+import jwt from "jsonwebtoken";
+/**
+ * Register a new user with Clerk
+ * Clerk handles authentication, we store user data in MongoDB
+ */
+export const register = async (req, res, next) => {
   try {
-    const { fullName, email, password } = req.body;
-    // Check if user already exists
-    const existingUser = await User.findOne({ email: email.toLowerCase() });
-    if (existingUser) {
-      throw new AppError('Email already registered', 409);
+    const { email, username, clerkId } = req.body;
+    // Validate required fields
+    if (!email || !username || !clerkId) {
+      return res.status(400).json({
+        success: false,
+        message: "Email, username, and clerkId are required",
+      });
     }
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, config.BCRYPT_ROUNDS);
-    // Generate username from email
-    let username = email.split('@')[0].toLowerCase();
-    let usernameExists = await User.findOne({ username });
-    let counter = 1;
-    while (usernameExists) {
-      username = `${email.split('@')[0].toLowerCase()}${counter}`;
-      usernameExists = await User.findOne({ username });
-      counter++;
-    }
-    // Create user
-    const user = await User.create({
-      fullName,
-      email: email.toLowerCase(),
-      username,
-      password: hashedPassword,
+    // Check if user already exists in database
+    const existingUser = await User.findOne({
+      $or: [{ email }, { Username: username }, { clerkId }],
     });
-    // Generate token
-    const token = generateToken(user._id);
-    logger.info(`User registered: ${user._id}`);
+    if (existingUser) {
+      return res.status(409).json({
+        success: false,
+        message: "User already exists with this email or username",
+      });
+    }
+    // Create new user in MongoDB
+    const newUser = new User({
+      Username: username,
+      email,
+      clerkId,
+      password: "", // Clerk handles password, not stored in our DB
+      notifications: {
+        emailNotifications: true,
+        pushNotifications: false,
+        marketingEmails: false,
+        dataCollection: true,
+      },
+    });
+    // Save user to database
+    await newUser.save();
+    // Generate JWT token for backend session
+    const token = jwt.sign(
+      { userId: newUser._id, clerkId, email },
+      process.env.JWT_SECRET || "your_secret_key",
+      { expiresIn: "7d" },
+    );
     res.status(201).json({
       success: true,
-      data: {
-        token,
-        user: {
-          id: user._id,
-          email: user.email,
-          fullName: user.fullName,
-        },
+      message: "User registered successfully",
+      user: {
+        id: newUser._id,
+        username: newUser.Username,
+        email: newUser.email,
+        clerkId: newUser.clerkId,
       },
+      token,
     });
-  } catch (err) {
-    next(err);
+  } catch (error) {
+    console.error("Registration error:", error);
+    next(error);
   }
-}
-export async function login(req, res, next) {
+};
+/**
+ * Login user (Clerk handles the auth, we verify and issue JWT)
+ * This endpoint is called after Clerk verifies the user
+ */
+export const login = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
-    // Fetch user and password (password is normally excluded)
-    const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
+    const { clerkId, email } = req.body;
+
+    // Validate required fields
+    if (!clerkId || !email) {
+      return res.status(400).json({
+        success: false,
+        message: "Clerk ID and email are required",
+      });
+    }
+    // Find user in database by clerkId
+    const user = await User.findOne({ clerkId });
     if (!user) {
-      throw new AppError('Invalid credentials', 401);
+      return res.status(404).json({
+        success: false,
+        message: "User not found. Please register first.",
+      });
     }
-    // Verify password
-    const isValidPassword = await bcrypt.compare(password, user.password);
-    if (!isValidPassword) {
-      throw new AppError('Invalid credentials', 401);
+    // Verify email matches
+    if (user.email !== email) {
+      return res.status(401).json({
+        success: false,
+        message: "Email mismatch",
+      });
     }
-
-    // Generate token
-    const token = generateToken(user._id);
-
-    logger.info(`User logged in: ${user._id}`);
-
-    res.json({
+    // Generate JWT token
+    const token = jwt.sign(
+      { userId: user._id, clerkId, email: user.email },
+      process.env.JWT_SECRET || "your_secret_key",
+      { expiresIn: "7d" },
+    );
+    res.status(200).json({
       success: true,
-      data: {
-        token,
-        user: {
-          id: user._id,
-          email: user.email,
-          fullName: user.fullName,
-        },
+      message: "Login successful",
+      user: {
+        id: user._id,
+        username: user.Username,
+        email: user.email,
+        clerkId: user.clerkId,
       },
+      token,
     });
-  } catch (err) {
-    next(err);
+  } catch (error) {
+    console.error("Login error:", error);
+    next(error);
   }
-}
-
-export async function logout(req, res, next) {
+};
+/**
+ * Get user profile
+ */
+export const getUserProfile = async (req, res, next) => {
   try {
-    logger.info(`User logged out: ${req.user.id}`);
-    res.json({ success: true, message: 'Logged out successfully' });
-  } catch (err) {
-    next(err);
-  }
-}
-
-export async function getCurrentUser(req, res, next) {
-  try {
-    const user = await User.findById(req.user.id);
+    const userId = req.user?.userId; // From JWT middleware
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+    const user = await User.findById(userId).select("-password");
     if (!user) {
-      throw new AppError('User not found', 404);
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
     }
-    res.json({
+    res.status(200).json({
       success: true,
-      data: { user },
+      user,
     });
-  } catch (err) {
-    next(err);
+  } catch (error) {
+    console.error("Get profile error:", error);
+    next(error);
   }
-}
-export async function refreshToken(req, res, next) {
+};
+/**
+ * Update user profile
+ */
+export const updateProfile = async (req, res, next) => {
   try {
-    const { token } = req.body;
-    if (!token) {
-      throw new AppError('Token required', 400);
+    const userId = req.user?.userId; // From JWT middleware
+    const { username, notifications } = req.body;
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
     }
-    const decoded = jwt.verify(token, config.JWT_SECRET, { ignoreExpiration: true });
-    const newToken = generateToken(decoded.id);
+    const updateData = {};
+    if (username) {
+      // Check if username is already taken by another user
+      const existingUser = await User.findOne({
+        Username: username,
+        _id: { $ne: userId },
+      });
+      if (existingUser) {
+        return res.status(409).json({
+          success: false,
+          message: "Username already taken",
+        });
+      }
+      updateData.Username = username;
+    }
+    if (notifications) {
+      updateData.notifications = {
+        ...notifications,
+      };
+    }
+    const updatedUser = await User.findByIdAndUpdate(userId, updateData, {
+      new: true,
+      runValidators: true,
+    }).select("-password");
 
-    res.json({
+    res.status(200).json({
       success: true,
-      data: { token: newToken },
+      message: "Profile updated successfully",
+      user: updatedUser,
     });
-  } catch (err) {
-    next(err);
+  } catch (error) {
+    console.error("Update profile error:", error);
+    next(error);
   }
-}
-function generateToken(userId) {
-  return jwt.sign({ id: userId }, config.JWT_SECRET, {
-    expiresIn: config.JWT_EXPIRE,
-  });
-}
+};
+
+/**
+ * Logout user (mainly for frontend cleanup)
+ */
+export const logout = async (req, res, next) => {
+  try {
+    // JWT is stateless, logout is handled on frontend by removing token
+    // Optionally, you can invalidate token on backend using a blacklist
+
+    res.status(200).json({
+      success: true,
+      message: "Logged out successfully",
+    });
+  } catch (error) {
+    console.error("Logout error:", error);
+    next(error);
+  }
+};

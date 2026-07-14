@@ -1,0 +1,26 @@
+# Frontend
+frontend/node_modules/
+frontend/.vercel/
+frontend/.next/
+frontend/out/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+frontend/.env.*
+# Backend
+backend/node_modules/
+backend/logs/
+backend/dist/
+backend/.env
+backend/.env.*
+# OS
+.DS_Store
+Thumbs.db
+# IDE
+.vscode/
+.idea/
+# Logs
+*.log
+# Bun (recommended: DO NOT ignore)
+# frontend/bun.lock
+# backend/bun.lock

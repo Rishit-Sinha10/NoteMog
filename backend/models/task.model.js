@@ -1,36 +1,38 @@
-import mongoose, { Mongoose } from "mongoose";
-const TaskSchema = new mongoose.Schema({
+import mongoose from "mongoose";
+
+const TaskSchema = new mongoose.Schema(
+  {
     UserId: {
-        type: Mongoose.types.Schema.ObjectId,
-        ref: "User"
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
     },
     SubjectId: {
-        type: Mongoose.types.Schema.ObjectId,
-        ref: "Subject"
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Subject",
     },
     title: {
-        required: true,
-        default: "",
-        type: String
+      required: true,
+      default: "",
+      type: String,
     },
     date: {
-        required: true,
-        default: "",
-        type: String,
+      required: true,
+      default: "",
+      type: String,
     },
     durationMins: {
-        required: true,
-        default: "",
-        type: String,
-
+      required: true,
+      default: "0",
+      type: String,
     },
     status: {
-        required: true,
-        default: "",
-        type: String,
-        enum: [inactive, active]
+      required: true,
+      default: "active",
+      type: String,
+      enum: ["active", "inactive"],
     },
+  },
+  { timestamps: true },
+);
 
-}, { timestamps: true })
-const Task = mongoose.model("Task", TaskSchema);
-export default Task;
+export const Task = mongoose.model("Task", TaskSchema);

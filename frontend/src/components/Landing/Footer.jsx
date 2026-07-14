@@ -24,7 +24,7 @@ export default function Footer() {
               lightbulb
             </span>
             <span className="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed">
-              Lumina
+              NoteMog
             </span>
           </div>
           <p className="text-on-surface-variant dark:text-surface-variant text-body-md mb-4">
@@ -61,7 +61,7 @@ export default function Footer() {
       </div>
       <div className="max-w-container-max mx-auto px-gutter mt-20 pt-10 border-t border-surface-variant/20">
         <p className="text-on-surface-variant dark:text-surface-variant text-body-md">
-          © 2024 Lumina AI. All rights reserved.
+          © 2024 NoteMog AI. All rights reserved.
         </p>
       </div>
     </footer>
