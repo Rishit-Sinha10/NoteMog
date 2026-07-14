@@ -369,11 +369,8 @@ We welcome contributions from the community! Follow these steps to contribute:
    - Link any related issues
    - Wait for review
 ---
-
 <div align="center">
 ### Made with ❤️ by [Rishit Sinha]
 ⭐ **Star this repo if you find it helpful!**
-[GitHub](https://github.com/yourusername/notemog) • [Live Demo](https://notemog-live.vercel.app) • [Report Bug](https://github.com/yourusername/notemog/issues)
 </div>
 ---
-**Last Updated:** June 2024 |**Status:** Active Development
